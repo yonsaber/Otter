@@ -1,0 +1,76 @@
+{
+  "name": "OgmoProject",
+  "ogmoVersion": "3.3.0",
+  "levelPaths": ["."],
+  "backgroundColor": "#948a81ff",
+  "gridColor": "#000000cc",
+  "anglesRadians": true,
+  "directoryDepth": 5,
+  "layerGridDefaultSize": {"x": 16, "y": 16},
+  "levelDefaultSize": {"x": 320, "y": 240},
+  "levelMinSize": {"x": 640, "y": 480},
+  "levelMaxSize": {"x": 640, "y": 480},
+  "levelValues": [],
+  "defaultExportMode": ".json",
+  "compactExport": false,
+  "externalScript": "",
+  "playCommand": "",
+  "entityTags": [],
+  "layers": [
+    {
+      "definition": "grid",
+      "name": "Solid",
+      "gridSize": {"x": 16, "y": 16},
+      "exportID": "78989383",
+      "arrayMode": 0,
+      "legend": {"0": "#00000000", "1": "#000000ff"}
+    },
+    {
+      "definition": "entity",
+      "name": "Entities",
+      "gridSize": {"x": 16, "y": 16},
+      "exportID": "78988239",
+      "requiredTags": [],
+      "excludedTags": []
+    }
+  ],
+  "entities": [
+    {
+      "exportID": "78982208",
+      "name": "Player",
+      "limit": 1,
+      "size": {"x": 10, "y": 24},
+      "origin": {"x": -3, "y": 12},
+      "originAnchored": true,
+      "shape": {
+        "label": "Rectangle",
+        "points": [
+          {"x": -1, "y": -1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": -1},
+          {"x": -1, "y": 1},
+          {"x": 1, "y": 1}
+        ]
+      },
+      "color": "#ff0000ff",
+      "tileX": false,
+      "tileY": false,
+      "tileSize": {"x": 16, "y": 16},
+      "resizeableX": false,
+      "resizeableY": false,
+      "rotatable": false,
+      "rotationDegrees": 360,
+      "canFlipX": false,
+      "canFlipY": false,
+      "canSetColor": false,
+      "hasNodes": false,
+      "nodeLimit": 0,
+      "nodeDisplay": 0,
+      "nodeGhost": true,
+      "tags": [],
+      "values": []
+    }
+  ],
+  "tilesets": []
+}

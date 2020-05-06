@@ -5,8 +5,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="OgmoProject.oep" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Level.oel" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Level.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Ogmo3Project.ogmo">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="OgmoProject.oep" CopyToOutputDirectory="Always" />
+    <None Update="Level.oel" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <PropertyGroup>
