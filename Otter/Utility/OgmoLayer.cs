@@ -1,6 +1,8 @@
+using System.Text.Json;
 using System.Xml;
 
 using Otter.Graphics;
+using Otter.Utility.GoodStuff;
 
 namespace Otter.Utility
 {
@@ -84,6 +86,23 @@ namespace Otter.Utility
             if (Type == "GridLayerDefinition")
             {
                 Color = new Color(xml["Color"]);
+            }
+        }
+
+        public OgmoLayer(JsonElement json)
+        {
+            Name = json.GetProperty("name").GetString();
+            Type = json.GetProperty("definition").GetString();
+
+            var gridSize = json.GetProperty("gridSize");
+
+            GridWidth = gridSize.GetProperty("x").GetInt32();
+            GridHeight = gridSize.GetProperty("y").GetInt32();
+
+            if (Type == "grid")
+            {
+                // TODO: How the hell do we get the right color to use?!?!?
+                Color = json.GetProperty("legend").GetColor("1");
             }
         }
 
