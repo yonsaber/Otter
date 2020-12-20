@@ -5,7 +5,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="img\tiles.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Level.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="levels\uno.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Ogmo3Project.ogmo">
@@ -13,6 +19,9 @@
     </None>
     <None Update="OgmoProject.oep" CopyToOutputDirectory="Always" />
     <None Update="Level.oel" CopyToOutputDirectory="Always" />
+    <None Update="test.ogmo">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <PropertyGroup>

@@ -30,7 +30,7 @@ namespace PlatformingExample
             }
             else if (_version == OgmoProject.OgmoVersion.Version3)
             {
-                ogmoProject = new OgmoProject("Ogmo3Project.ogmo");
+                ogmoProject = new OgmoProject("test.ogmo");
             }
             else
             {
@@ -50,7 +50,7 @@ namespace PlatformingExample
             }
             else if (_version == OgmoProject.OgmoVersion.Version3)
             {
-                ogmoProject.LoadLevel("Level.json", this);
+                ogmoProject.LoadLevel("levels\\uno.json", this);
             }
             else
             {
