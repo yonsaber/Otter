@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Xml;
 
@@ -51,7 +52,7 @@ namespace Otter.Utility
         /// <summary>
         /// The color of layer from Ogmo Editor.
         /// </summary>
-        public Color Color;
+        public Dictionary<string, Color> Colors = new Dictionary<string, Color>();
 
         #endregion
 
@@ -85,7 +86,7 @@ namespace Otter.Utility
 
             if (Type == "GridLayerDefinition")
             {
-                Color = new Color(xml["Color"]);
+                Colors.Add("DEFAULT", new Color(xml["Color"]));
             }
         }
 
@@ -101,8 +102,7 @@ namespace Otter.Utility
 
             if (Type == "grid")
             {
-                // TODO: How the hell do we get the right color to use?!?!?
-                Color = json.GetProperty("legend").GetColor("1");
+                json.GetProperty("legend").EnumerateObject().Each(v => Colors.Add(v.Name, v.Value.GetColor()));
             }
         }
 

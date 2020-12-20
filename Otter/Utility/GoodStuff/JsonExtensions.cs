@@ -10,7 +10,14 @@ namespace Otter.Utility.GoodStuff
     {
         public static Color GetColor(this JsonElement jsonElement, string key)
         {
-            var colorString = jsonElement.GetProperty(key).GetString();
+            var colorString = jsonElement.GetProperty(key);
+
+            return colorString.GetColor();
+        }
+
+        public static Color GetColor(this JsonElement jsonElement)
+        {
+            var colorString = jsonElement.GetString();
 
             if (colorString.StartsWith("#"))
             {

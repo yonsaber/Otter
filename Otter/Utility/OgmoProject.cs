@@ -144,13 +144,11 @@ namespace Otter.Utility
 
             if (Path.GetExtension(source) == Ogmo2ProjectExt)
             {
-                Console.WriteLine("Loading Ogmo 2 Project");
                 version = OgmoVersion.Version2;
                 XmlParse(source);
             }
             else if (Path.GetExtension(source) == Ogmo3ProjectExt)
             {
-                Console.WriteLine("Loading Ogmo 3 Project");
                 version = OgmoVersion.Version3;
                 JsonParse(source);
             }
@@ -213,34 +211,27 @@ namespace Otter.Utility
             BackgroundColor = root.GetColor("backgroundColor");
             GridColor = root.GetColor("gridColor");
 
-            var layers = root.GetProperty("layers");
-            for (int i = 0; i < layers.GetArrayLength(); i++)
+            GetJsonElementValues(root, "layers", layer =>
             {
-                var layer = new OgmoLayer(layers[i]);
-                Layers.Add(layer.Name, layer);
-            }
+                var ogmoLayer = new OgmoLayer(layer);
+                Layers.Add(ogmoLayer.Name, ogmoLayer);
+            });
 
             //I dont know if I need to do this
-            var entities = root.GetProperty("entities");
-            for (int i = 0; i < entities.GetArrayLength(); i++)
-            {
-            }
+            GetJsonElementValues(root, "entities", entity => Console.WriteLine($"[Ogmo] Got entity {entity.GetProperty("name").GetString()}"));
 
-            var tileSets = root.GetProperty("tilesets");
-            for (int i = 0; i < tileSets.GetArrayLength(); i++)
-            {
-                // TODO: Convert path to full path
-                TileMaps.Add(tileSets[i].GetProperty("label").GetString(), tileSets[i].GetProperty("path").GetString());
-            }
+            GetJsonElementValues(root, "tilesets", currentTileset => TileMaps.Add(currentTileset.GetProperty("label").GetString(), currentTileset.GetProperty("path").GetString()));
 
-            ////var xmlLevelValues = xmlDoc.GetElementsByTagName("ValueDefinitions");
-            ////dirty dirty hack because there should only be one element with that name
-            ////and for SOME REASON I can't just grab an XmlElement, I have to grab a NodeList and enumerate it for my element. What gives, microsoft?
-            //var xmlLevelValues = xmlDoc.GetElementsByTagName("LevelValueDefinitions")[0] as XmlElement;
-            //foreach (XmlElement x in xmlLevelValues.GetElementsByTagName("ValueDefinition"))
-            //{
-            //    levelValueTypes.Add(x.Attributes["Name"].Value, x.Attributes["xsi:type"].Value);
-            //}
+            GetJsonElementValues(root, "levelValues", currentLevelValue => levelValueTypes.Add(currentLevelValue.GetProperty("name").GetString(), currentLevelValue.GetProperty("definition").GetString()));
+        }
+
+        void GetJsonElementValues(JsonElement root, string property, Action<JsonElement> action)
+        {
+            var propertyElement = root.GetProperty(property);
+            for (int i = 0; i < propertyElement.GetArrayLength(); i++)
+            {
+                action(propertyElement[i]);
+            }
         }
 
         private void LoadAsXml(string data, Scene scene)
@@ -272,7 +263,7 @@ namespace Otter.Utility
                     if (DisplayGrids)
                     {
                         var tilemap = new Tilemap(scene.Width, scene.Height, layer.GridWidth, layer.GridHeight);
-                        tilemap.LoadString(xmlLevel[layer.Name].InnerText, layer.Color);
+                        tilemap.LoadString(xmlLevel[layer.Name].InnerText, layer.Colors);
                         Entity.AddGraphic(tilemap);
                     }
 
@@ -372,12 +363,19 @@ namespace Otter.Utility
                 var currentLayer = root.GetProperty("layers").EnumerateArray().FirstOrDefault(v => v.GetProperty("name").GetString() == layer.Name);
                 var layerName = currentLayer.GetProperty("name").GetString();
 
+                if (layerName.Contains("2D") || layerName.Contains("Coords"))
+                {
+                    Console.WriteLine($"[Ogmo] {layerName} - 2D types and coords not supported");
+                    continue;
+                }
+
                 if (layer.Type == "grid")
                 {
                     var Entity = new Entity();
 
                     var grid = new GridCollider(scene.Width, scene.Height, layer.GridWidth, layer.GridHeight);
 
+                    // TODO: Change this, it's weird and doesn't seem right
                     var gridData = string.Join(",", currentLayer.GetProperty("grid").EnumerateArray());
 
                     grid.LoadString(gridData);
@@ -390,7 +388,7 @@ namespace Otter.Utility
                     if (DisplayGrids)
                     {
                         var tilemap = new Tilemap(scene.Width, scene.Height, layer.GridWidth, layer.GridHeight);
-                        tilemap.LoadString(gridData, layer.Color);
+                        tilemap.LoadString(gridData, layer.Colors);
                         Entity.AddGraphic(tilemap);
                     }
 
@@ -400,54 +398,51 @@ namespace Otter.Utility
                     Entities.Add(layer.Name, Entity);
                 }
 
-                //if (layer.Type == "TileLayerDefinition")
-                //{
-                //    var Entity = new Entity();
+                if (layer.Type == "tile")
+                {
+                    var Entity = new Entity();
 
-                //    var xmlTiles = root.GetProperty("layers").GetProperty(layer.Name).GetRawText();
+                    var tileset = currentLayer.GetProperty("tileset").GetString();
 
-                //    var tileset = xmlTiles.Attributes["tileset"].Value;
+                    var tilepath = ImagePath + TileMaps[tileset];
 
-                //    var tilepath = ImagePath + TileMaps[tileset];
+                    foreach (var kv in assetMappings)
+                    {
+                        var find = kv.Key;
+                        var replace = kv.Value;
 
-                //    foreach (var kv in assetMappings)
-                //    {
-                //        var find = kv.Key;
-                //        var replace = kv.Value;
+                        if (tilepath.EndsWith(find))
+                        {
+                            tilepath = replace;
+                            break;
+                        }
+                    }
 
-                //        if (tilepath.EndsWith(find))
-                //        {
-                //            tilepath = replace;
-                //            break;
-                //        }
-                //    }
+                    var tilemap = new Tilemap(tilepath, scene.Width, scene.Height, layer.GridWidth, layer.GridHeight);
 
-                //    var tilemap = new Tilemap(tilepath, scene.Width, scene.Height, layer.GridWidth, layer.GridHeight);
+                    var exportMode = currentLayer.GetProperty("exportMode").GetInt32();
+                    switch (exportMode)
+                    {
+                        case 0: // ID
+                            // TODO: Change this, it's weird and doesn't seem right
+                            tilemap.LoadCSV(string.Join(",", currentLayer.GetProperty("data").EnumerateArray()), tilemap.TileColumns, tilemap.TileRows);
+                            break;
+                        case 1: // Coords
+                            throw new Exception("Coords not implemented");
+                            tilemap.LoadCSV(string.Join(",", currentLayer.GetProperty("dataCoords").EnumerateArray()), tilemap.TileColumns, tilemap.TileRows, true);
+                            break;
+                    }
 
-                //    var exportMode = xmlTiles.Attributes["exportMode"].Value;
-                //    switch (exportMode)
-                //    {
-                //        case "CSV":
-                //            tilemap.LoadCSV(xmlTiles.InnerText);
-                //            break;
-                //        case "XMLCoords":
-                //            foreach (XmlElement t in xmlTiles)
-                //            {
-                //                tilemap.SetTile(t);
-                //            }
-                //            break;
-                //    }
+                    tilemap.Update();
 
-                //    tilemap.Update();
+                    Entity.AddGraphic(tilemap);
 
-                //    Entity.AddGraphic(tilemap);
+                    Entity.Layer = BaseTileDepth - i * TileDepthIncrement;
+                    i++;
 
-                //    Entity.Layer = BaseTileDepth - i * TileDepthIncrement;
-                //    i++;
-
-                //    scene.Add(Entity);
-                //    Entities.Add(layer.Name, Entity);
-                //}
+                    scene.Add(Entity);
+                    Entities.Add(layer.Name, Entity);
+                }
 
                 if (layer.Type == "entity")
                 {

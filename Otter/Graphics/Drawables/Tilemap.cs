@@ -1101,17 +1101,19 @@ namespace Otter.Graphics.Drawables
         /// <param name="empty">The character that represents an empty tile.</param>
         /// <param name="filled">The character that represents a filled tile.</param>
         /// <param name="layer">The layer to place the tiles on.</param>
-        public void LoadString(string source, Color color = null, char empty = '0', char filled = '1', string layer = "")
+        public void LoadString(string source, Dictionary<string, Color> colors = null, char empty = '0', char filled = '1', string layer = "")
         {
             int xx = 0, yy = 0;
+            Color printColor = null;
 
-            if (color == null)
+            if (colors == null)
             {
-                color = Color.Red;
+                printColor = Color.Red;
             }
 
             for (int i = 0; i < source.Length; i++)
             {
+                // CAN BE A MULITIUDE OF VALUES!!!!!!
                 if (source[i] != empty && source[i] != filled) continue;
 
                 if (xx == TileColumns)
@@ -1120,9 +1122,17 @@ namespace Otter.Graphics.Drawables
                     yy++;
                 }
 
-                if (source[i] == filled)
+                if (source[i] != empty)
                 {
-                    SetTile(xx, yy, color, layer);
+                    if (colors.ContainsKey("DEFAULT"))
+                    {
+                        colors.TryGetValue("DEFAULT", out printColor);
+                    }
+                    else
+                    {
+                        colors.TryGetValue(source[i].ToString(), out printColor);
+                    }
+                    SetTile(xx, yy, printColor, layer);
                 }
 
                 xx++;
@@ -1137,9 +1147,61 @@ namespace Otter.Graphics.Drawables
         /// <param name="empty">The character that represents an empty tile.</param>
         /// <param name="filled">The character that represents a filled tile.</param>
         /// <param name="layer">The layer to place the tiles on.</param>
-        public void LoadString(string source, Color color, char empty, char filled, Enum layer)
+        public void LoadString(string source, Dictionary<string, Color> colors, char empty, char filled, Enum layer)
         {
-            LoadString(source, color, empty, filled, Util.EnumValueToString(layer));
+            LoadString(source, colors, empty, filled, Util.EnumValueToString(layer));
+        }
+
+        /// <summary>
+        /// Load the tilemap from a CSV formatted string.
+        /// </summary>
+        /// <param name="str">The string data to load.</param>
+        /// <param name="columnCount">How many columns the tilemap has.</param>
+        /// <param name="rowCount">How many rows the tilemap has.</param>
+        /// <param name="layer">The layer to place the tiles on.</param>
+        public void LoadCSV(string str, int columnCount, int rowCount, bool isCoords = false, string layer = "")
+        {
+            bool u = UsePositions;
+            UsePositions = false;
+
+            string[][] chunkedData = null;
+
+            if (!isCoords)
+            {
+                string[] splitCsv = str.Split(",");
+
+                chunkedData = splitCsv.Select((z, i) => new { Index = i, Value = z })
+                    .GroupBy(z => z.Index / columnCount)
+                    .Select(z => z.Select(v => v.Value).ToArray()).ToArray();
+
+                if (chunkedData.Length != rowCount)
+                {
+                    throw new Exception($"We tried to split the CSV up, and ended up with more rows than we should have! Expected: {rowCount} - Got: {chunkedData.Length}");
+                }
+            }
+
+            int x = 0;
+            int y = 0;
+
+            for (y = 0; y < rowCount - 1; y++)
+            {
+                if (chunkedData[y][x] == "")
+                {
+                    continue;
+                }
+
+                for (x = 0; x < columnCount - 1; x++)
+                {
+                    if (chunkedData[y][x].Equals("") || Convert.ToInt32(chunkedData[y][x]) < 0)
+                    {
+                        continue;
+                    }
+
+                    SetTile(x, y, Convert.ToInt16(chunkedData[y][x]), layer);
+                }
+            }
+
+            UsePositions = u;
         }
 
         /// <summary>
